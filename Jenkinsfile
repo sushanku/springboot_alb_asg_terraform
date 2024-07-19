@@ -46,7 +46,10 @@ pipeline {
             }
             steps {
                     // Use a tool like Trivy for image scanning
-                    sh "trivy image ${DOCKER_IMAGE}"
+                    sh"""
+                    export TRIVY_TIMEOUT=900s
+                    trivy image -f json -o results.json ${DOCKER_IMAGE}
+                    """
             }
         }
         
