@@ -9,7 +9,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh"""
-                cd $WORKDIR/spring-petclinic
+                cd $WORKSPACE/spring-petclinic
                 sh './gradlew test'
                 """
             }
@@ -18,7 +18,7 @@ pipeline {
         stage('Run Linter') {
             steps {
                 sh"""
-                cd $WORKDIR/spring-petclinic
+                cd $WORKSPACE/spring-petclinic
                 sh './gradlew check'
                 """
             }
@@ -32,7 +32,7 @@ pipeline {
             }
             steps {
                 sh"""
-                    cd $WORKDIR/spring-petclinic
+                    cd $WORKSPACE/spring-petclinic
                     docker build -t "${DOCKER_IMAGE}" .
                 """
             }
