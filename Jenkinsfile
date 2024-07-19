@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        DOCKER_BUILDKIT = '1'
         AWS_ACCOUNT_ID = "637423476564"
         AWS_DEFAULT_REGION = "us-east-1" // e.g., us-west-2
         ECR_REPO_NAME = "docker_images"
