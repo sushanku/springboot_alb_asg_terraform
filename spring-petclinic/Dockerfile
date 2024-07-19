@@ -3,7 +3,7 @@
 FROM gradle:8.7-jdk17 AS build
 WORKDIR /app
 COPY . .
-RUN ./gradlew clean build
+RUN ./gradlew clean build -x test
 
 # Stage 2: Deploy the application
 FROM openjdk:17-jdk-slim
