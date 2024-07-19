@@ -1,10 +1,15 @@
 pipeline {
     agent any
-    
+
     environment {
-        DOCKER_IMAGE = 'spring-petclinic:${BUILD_NUMBER}'
+        AWS_ACCOUNT_ID = "637423476564"
+        AWS_DEFAULT_REGION = "us-east-1" // e.g., us-west-2
+        ECR_REPO_NAME = "docker_images"
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        DOCKER_IMAGE = "${ECR_REPO_NAME}/spring-petclinic:${IMAGE_TAG}"
+        ECR_REGISTRY_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
     }
-    
+
     stages {        
         stage('Run Tests') {
             steps {
@@ -54,6 +59,23 @@ pipeline {
         }
         
         // Additional stages for pushing to ECR and deploying to EC2...
+        stage('Push to ECR') {
+            when {
+                expression {
+                    currentBuild.result == null || currentBuild.result == 'SUCCESS'
+                }
+            }
+            steps {
+                script {
+                    withAWS(credentials: 'aws_creds', region: "${AWS_DEFAULT_REGION}") {
+                        sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY_URL}"
+                        sh "docker tag ${DOCKER_IMAGE} ${ECR_REGISTRY_URL}/${DOCKER_IMAGE}"
+                        sh "docker push ${ECR_REGISTRY_URL}/${DOCKER_IMAGE}"
+                    }
+                }
+            }
+        }
+
     }
     
     // post {
