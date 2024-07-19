@@ -8,15 +8,19 @@ pipeline {
     stages {        
         stage('Run Tests') {
             steps {
+                sh"""
                 cd $WORKDIR/spring-petclinic
                 sh './gradlew test'
+                """
             }
         }
         
         stage('Run Linter') {
             steps {
+                sh"""
                 cd $WORKDIR/spring-petclinic
                 sh './gradlew check'
+                """
             }
         }
         
@@ -27,10 +31,10 @@ pipeline {
                 }
             }
             steps {
-                script {
+                sh"""
                     cd $WORKDIR/spring-petclinic
                     docker build -t "${DOCKER_IMAGE}" .
-                }
+                """
             }
         }
         
@@ -41,20 +45,18 @@ pipeline {
                 }
             }
             steps {
-                script {
                     // Use a tool like Trivy for image scanning
                     sh "trivy image ${DOCKER_IMAGE}"
-                }
             }
         }
         
         // Additional stages for pushing to ECR and deploying to EC2...
     }
     
-    post {
-        always {
-            // Clean up Docker images
-            sh "docker rmi ${DOCKER_IMAGE} || true"
-        }
-    }
+    // post {
+    //     always {
+    //         // Clean up Docker images
+    //         // sh "docker rmi ${DOCKER_IMAGE} || true"
+    //     }
+    // }
 }
