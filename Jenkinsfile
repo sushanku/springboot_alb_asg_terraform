@@ -90,16 +90,16 @@ pipeline {
         stage('Terraform Infra and Deployment') {
             steps {
                 dir('infra'){
-                    script {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: 'aws_creds',
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]])
+                    ]]) {
                         sh """
                             export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
                             export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+                            terraform init
                             terraform plan -out=tfplan
                             terraform apply -auto-approve tfplan
                         """
@@ -116,8 +116,7 @@ pipeline {
                         credentialsId: 'aws_creds',
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]])
-                    script {
+                    ]]){
                         sh 'aws s3 cp terraform.tfstate s3://terraform-springboot-app-bucket'
                     }
                 }
