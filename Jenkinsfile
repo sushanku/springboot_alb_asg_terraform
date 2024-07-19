@@ -10,7 +10,7 @@ pipeline {
             steps {
                 sh"""
                 cd $WORKSPACE/spring-petclinic
-                sh './gradlew test'
+                ./gradlew test
                 """
             }
         }
@@ -19,7 +19,7 @@ pipeline {
             steps {
                 sh"""
                 cd $WORKSPACE/spring-petclinic
-                sh './gradlew check'
+                ./gradlew check
                 """
             }
         }
