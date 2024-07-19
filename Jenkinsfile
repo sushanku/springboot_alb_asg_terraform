@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_BUILDKIT = '1'
         AWS_ACCOUNT_ID = "637423476564"
-        AWS_DEFAULT_REGION = "us-east-1" // e.g., us-west-2
+        AWS_DEFAULT_REGION = "us-east-1"
         ECR_REPO_NAME = "docker_images"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         DOCKER_IMAGE = "${ECR_REPO_NAME}:${IMAGE_TAG}"
@@ -13,20 +13,22 @@ pipeline {
 
     stages {        
         stage('Run Tests') {
-            steps {
-                sh"""
-                cd $WORKSPACE/spring-petclinic
-                ./gradlew test
-                """
+            dir('spring-petclinic') {
+                steps {
+                    sh"""
+                    ./gradlew test
+                    """
+                }
             }
         }
         
         stage('Run Linter') {
-            steps {
-                sh"""
-                cd $WORKSPACE/spring-petclinic
-                ./gradlew check
-                """
+            dir('spring-petclinic') {
+            steps { 
+                    sh"""
+                    ./gradlew check
+                    """
+                }
             }
         }
         
@@ -36,11 +38,12 @@ pipeline {
                     currentBuild.result == null || currentBuild.result == 'SUCCESS'
                 }
             }
-            steps {
-                sh"""
-                    cd $WORKSPACE/spring-petclinic
-                    docker build -t "${DOCKER_IMAGE}" .
-                """
+            dir('spring-petclinic') {
+                steps {
+                    sh"""
+                        docker build -t "${DOCKER_IMAGE}" .
+                    """
+                }
             }
         }
         
@@ -84,12 +87,48 @@ pipeline {
             }
         }
 
+        stage('Terraform Infra and Deployment') {
+            dir('infra'){
+                steps {
+                    script {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws_creds',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]])
+                        sh """
+                            export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+                            export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+                            terraform plan -out=tfplan
+                            terraform apply -auto-approve tfplan
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Upload Terraform State to S3') {
+            dir('infra'){
+                steps {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws_creds',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]])
+                    script {
+                        sh 'aws s3 cp terraform.tfstate s3://terraform-springboot-app-bucket'
+                    }
+                }
+            }
+        }
     }
-    
-    // post {
-    //     always {
-    //         // Clean up Docker images
-    //         // sh "docker rmi ${DOCKER_IMAGE} || true"
-    //     }
-    // }
+    post {
+        always {
+            sh "docker rmi ${DOCKER_IMAGE} || true"
+            cleanWs()
+        }
+    }
+
 }
