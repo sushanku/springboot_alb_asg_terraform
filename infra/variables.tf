@@ -6,26 +6,31 @@ variable "region" {
 
 # networking
 
-variable "vpc_cidr" {
+variable "vpc" {
   description = "CIDR Block for VPC"
   default     = "10.0.0.0/16"
 }
-variable "public_subnet_1_cidr" {
+
+variable "public_subnet_1" {
   description = "CIDR Block for Public Subnet 1"
   default     = "10.0.1.0/24"
 }
-variable "public_subnet_2_cidr" {
+
+variable "public_subnet_2" {
   description = "CIDR Block for Public Subnet 2"
   default     = "10.0.2.0/24"
 }
-variable "private_subnet_1_cidr" {
+
+variable "private_subnet_1" {
   description = "CIDR Block for Private Subnet 1"
   default     = "10.0.3.0/24"
 }
-variable "private_subnet_2_cidr" {
+
+variable "private_subnet_2" {
   description = "CIDR Block for Public Subnet 2"
   default     = "10.0.4.0/24"
 }
+
 variable "availability_zones" {
   description = "Availability zones"
   type        = list(string)
@@ -34,20 +39,15 @@ variable "availability_zones" {
 
 
 # load balancer
-
 variable "health_check_path" {
   description = "Health check path for the default target group"
   default     = "/"
 }
 
-variable "baston_ami" {
-  description = "Bastion AMI"
-  default = "ami-0a0e5d9c7acc336f1"
-}
 
 variable "docker_app_ami" {
   description = "AMI used for docker deployment"
-  default = "ami-0c36bccb067624266"
+  default = "ami-0a0e5d9c7acc336f1"
 }
 
 

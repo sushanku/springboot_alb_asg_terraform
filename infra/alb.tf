@@ -1,49 +1,44 @@
-# Load Balancer
-resource "aws_lb" "terraform-lab" {
-  name               = "${var.ec2_instance_name}-alb"
-  load_balancer_type = "application"
+# Create the Application Load Balancer (in public subnets)
+resource "aws_lb" "springboot-app" {
+  name               = "springboot-app-lb"
   internal           = false
-  security_groups    = [aws_security_group.load-balancer.id]
-  subnets            = [aws_subnet.public-subnet-1.id, aws_subnet.public-subnet-2.id]
-  enable_deletion_protection = true
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.lb_sg.id]
+  subnets            = [aws_subnet.public1.id, aws_subnet.public2.id]  # Use public subnets for the ALB
 }
 
-# Target group
-resource "aws_alb_target_group" "default-target-group" {
-  name     = "${var.ec2_instance_name}-tg"
+# Create a target group for the ALB
+resource "aws_lb_target_group" "springboot-app" {
+  name     = "springboot-app-tg"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.terraform-lab-vpc.id
+  vpc_id   = aws_vpc.springboot-app.id
+
+  health_check {
+    path                = "/"  # Assuming you have a /health endpoint
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 5
+    interval            = 30
+    matcher             = "200"  # Success codes
+  }
 
   stickiness {
     type            = "lb_cookie"
     cookie_duration = 86400
     enabled         = true
   }
-
-  health_check {
-    path                = var.health_check_path
-    healthy_threshold   = 5
-    unhealthy_threshold = 2
-    timeout             = 2
-    interval            = 60
-    matcher             = "200"
-  }
+  
 }
 
-resource "aws_autoscaling_attachment" "asg_attachment_bar" {
-  autoscaling_group_name = aws_autoscaling_group.ec2-cluster.id
-  alb_target_group_arn = aws_alb_target_group.default-target-group.arn
-}
-
-resource "aws_alb_listener" "ec2-alb-http-listener" {
-  load_balancer_arn = aws_lb.terraform-lab.id
+# Create a listener for the ALB
+resource "aws_lb_listener" "springboot-app" {
+  load_balancer_arn = aws_lb.springboot-app.arn
   port              = "80"
   protocol          = "HTTP"
-  depends_on        = [aws_alb_target_group.default-target-group]
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_alb_target_group.default-target-group.arn
+    target_group_arn = aws_lb_target_group.springboot-app.arn
   }
 }
