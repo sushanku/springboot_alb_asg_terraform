@@ -6,7 +6,7 @@ pipeline {
         AWS_DEFAULT_REGION = "us-east-1" // e.g., us-west-2
         ECR_REPO_NAME = "docker_images"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
-        DOCKER_IMAGE = "${ECR_REPO_NAME}/spring-petclinic:${IMAGE_TAG}"
+        DOCKER_IMAGE = "${ECR_REPO_NAME}:${IMAGE_TAG}"
         ECR_REGISTRY_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
     }
 
@@ -67,10 +67,17 @@ pipeline {
             }
             steps {
                 script {
-                    withAWS(credentials: 'aws_creds', region: "${AWS_DEFAULT_REGION}") {
-                        sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY_URL}"
-                        sh "docker tag ${DOCKER_IMAGE} ${ECR_REGISTRY_URL}/${DOCKER_IMAGE}"
-                        sh "docker push ${ECR_REGISTRY_URL}/${DOCKER_IMAGE}"
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws_creds',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        sh """
+                            aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY_URL}
+                            docker tag ${DOCKER_IMAGE} ${ECR_REGISTRY_URL}/${DOCKER_IMAGE}
+                            docker push ${ECR_REGISTRY_URL}/${DOCKER_IMAGE}
+                        """
                     }
                 }
             }
