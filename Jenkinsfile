@@ -13,8 +13,8 @@ pipeline {
 
     stages {        
         stage('Run Tests') {
-            dir('spring-petclinic') {
-                steps {
+            steps {
+                dir('spring-petclinic') {
                     sh"""
                     ./gradlew test
                     """
@@ -23,8 +23,8 @@ pipeline {
         }
         
         stage('Run Linter') {
-            dir('spring-petclinic') {
-            steps { 
+            steps {
+                dir('spring-petclinic') {
                     sh"""
                     ./gradlew check
                     """
@@ -38,8 +38,8 @@ pipeline {
                     currentBuild.result == null || currentBuild.result == 'SUCCESS'
                 }
             }
-            dir('spring-petclinic') {
-                steps {
+            steps {
+                dir('spring-petclinic') {
                     sh"""
                         docker build -t "${DOCKER_IMAGE}" .
                     """
@@ -88,8 +88,8 @@ pipeline {
         }
 
         stage('Terraform Infra and Deployment') {
-            dir('infra'){
-                steps {
+            steps {
+                dir('infra'){
                     script {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
@@ -109,8 +109,8 @@ pipeline {
         }
 
         stage('Upload Terraform State to S3') {
-            dir('infra'){
-                steps {
+            steps {
+                dir('infra'){
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: 'aws_creds',
