@@ -1,9 +1,11 @@
 pipeline {
     agent any
 
-    parameters { string(name: 'AWS_ACCOUNT_ID', defaultValue: '', description: 'AWS Account ID') }
-    parameters { string(name: 'AWS_DEFAULT_REGION', defaultValue: '', description: 'AWS Account Region') }
-    parameters { string(name: 'ECR_REPO_NAME', defaultValue: '', description: 'ECR Repository for docker images') }
+    parameters { 
+        string(name: 'AWS_ACCOUNT_ID', defaultValue: '', description: 'AWS Account ID')
+        string(name: 'AWS_DEFAULT_REGION', defaultValue: '', description: 'AWS Account Region')
+        string(name: 'ECR_REPO_NAME', defaultValue: '', description: 'ECR Repository for docker images')
+    }
 
     environment {
         DOCKER_BUILDKIT = '1'
