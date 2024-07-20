@@ -3,9 +3,7 @@ variable "region" {
   default     = "us-east-1"
 }
 
-
 # networking
-
 variable "vpc" {
   description = "CIDR Block for VPC"
   default     = "10.0.0.0/16"
@@ -80,4 +78,21 @@ variable "autoscale_max" {
 variable "autoscale_desired" {
   description = "Desired autoscale (number of EC2)"
   default     = "2"
+}
+
+
+## variables for launch template user_data template
+variable "aws_account_id" {
+  description = "Account ID"
+  type = string
+}
+
+variable "ecr_repo_url" {
+  description = "ECR URL Repo"
+  type = string
+}
+
+variable "ecr_docker_image_tag" {
+  description = "Docker Image Tag"
+  type = string
 }

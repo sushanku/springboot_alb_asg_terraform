@@ -1,23 +1,22 @@
 pipeline {
     agent any
 
+    parameters { string(name: 'AWS_ACCOUNT_ID', defaultValue: '', description: 'AWS Account ID') }
+    parameters { string(name: 'AWS_DEFAULT_REGION', defaultValue: '', description: 'AWS Account Region') }
+    parameters { string(name: 'ECR_REPO_NAME', defaultValue: '', description: 'ECR Repository for docker images') }
+
     environment {
         DOCKER_BUILDKIT = '1'
-        AWS_ACCOUNT_ID = "637423476564"
-        AWS_DEFAULT_REGION = "us-east-1"
-        ECR_REPO_NAME = "docker_images"
-        IMAGE_TAG = "${env.BUILD_NUMBER}"
-        DOCKER_IMAGE = "${ECR_REPO_NAME}:${IMAGE_TAG}"
-        ECR_REGISTRY_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+        DOCKER_IMAGE_TAG = "${ECR_REPO_NAME}:${env.BUILD_NUMBER}"
+        ECR_REPO_URL = "${params.AWS_ACCOUNT_ID}.dkr.ecr.${params.AWS_DEFAULT_REGION}.amazonaws.com"
+        ECR_DOCKER_TAG = "${ECR_REPO_URL}/${DOCKER_IMAGE_TAG}"
     }
 
     stages {        
         stage('Run Tests') {
             steps {
                 dir('spring-petclinic') {
-                    sh"""
-                    ./gradlew test
-                    """
+                    sh "./gradlew test"
                 }
             }
         }
@@ -25,9 +24,7 @@ pipeline {
         stage('Run Linter') {
             steps {
                 dir('spring-petclinic') {
-                    sh"""
-                    ./gradlew check
-                    """
+                    sh "./gradlew check"
                 }
             }
         }
@@ -40,9 +37,7 @@ pipeline {
             }
             steps {
                 dir('spring-petclinic') {
-                    sh"""
-                        docker build -t "${DOCKER_IMAGE}" .
-                    """
+                    sh "docker build -t ${DOCKER_IMAGE} ."
                 }
             }
         }
@@ -78,9 +73,9 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         sh """
-                            aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY_URL}
-                            docker tag ${DOCKER_IMAGE} ${ECR_REGISTRY_URL}/${DOCKER_IMAGE}
-                            docker push ${ECR_REGISTRY_URL}/${DOCKER_IMAGE}
+                            aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_REPO_URL}
+                            docker tag ${DOCKER_IMAGE} ${ECR_DOCKER_TAG}
+                            docker push ${ECR_DOCKER_TAG}
                         """
                     }
                 }
@@ -97,9 +92,12 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         sh """
+                            echo "aws_account_id  = ${AWS_ACCOUNT_ID}" > terraform.tfvars
+                            echo "ecr_repo_url    = ${ECR_REPO_URL}" >> terraform.tfvars
+                            echo "ecr_docker_tag  = ${ECR_DOCKER_TAG}" >> terraform.tfvars
                             terraform init
-                            terraform plan -out=tfplan
-                            terraform apply -auto-approve tfplan
+                            terraform plan -var-file="terraform.tfvars" -out=tfplan
+                            terraform apply -var-file="terraform.tfvars" -auto-approve tfplan
                         """
                     }
                 }

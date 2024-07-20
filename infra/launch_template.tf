@@ -15,5 +15,11 @@ resource "aws_launch_template" "springboot-app" {
       Name = "springboot-app-instance"
     }
   }
-    user_data = filebase64("./docker_run_petclinic.sh")
+
+  user_data = templatefile("${path.module}/docker_run_petclinic.tpl", {
+    aws_region      = var.region
+    ecr_repo_url   = var.ecr_repo_url
+    ecr_docker_tag  = var.ecr_docker_image_tag
+  })
+
 }

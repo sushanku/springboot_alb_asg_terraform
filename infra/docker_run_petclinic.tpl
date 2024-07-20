@@ -15,10 +15,15 @@ echo \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt update
 sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-# sudo usermod -aG docker $USER
 
-# run docker
-sudo docker pull sushanku/spring-petclinic:v1
-sudo docker tag sushanku/spring-petclinic:v1 spring-petclinic
-sudo docker run --rm --name petclinic-server -d -p 80:8080 -t spring-petclinic
 
+## pull docker image and run the application
+
+# Authenticate Docker to the ECR registry
+$(aws ecr get-login-password --region ${aws_region} | sudo docker login --username AWS --password-stdin ${ecr_repo_url})
+
+# Pull the Docker image from ECR
+sudo docker pull ${ecr_docker_tag}
+
+# Run the Docker container
+sudo docker run -d --name petclinic -p 8080:8080 ${ecr_docker_tag}
