@@ -105,21 +105,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Upload Terraform State to S3') {
-            steps {
-                dir('infra'){
-                    withCredentials([[
-                        $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: 'aws_creds',
-                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]]){
-                        sh 'aws s3 cp terraform.tfstate s3://terraform-springboot-app-bucket'
-                    }
-                }
-            }
-        }
     }
     post {
         always {
