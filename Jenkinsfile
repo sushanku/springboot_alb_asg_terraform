@@ -39,7 +39,7 @@ pipeline {
             }
             steps {
                 dir('spring-petclinic') {
-                    sh "docker build -t ${DOCKER_IMAGE} ."
+                    sh "docker build -t ${DOCKER_IMAGE_TAG} ."
                 }
             }
         }
