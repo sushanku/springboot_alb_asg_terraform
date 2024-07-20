@@ -54,7 +54,7 @@ pipeline {
                     // Use a tool like Trivy for image scanning
                     sh"""
                     export TRIVY_TIMEOUT=900s
-                    trivy image -f json -o results.json ${DOCKER_IMAGE}
+                    trivy image -f json -o results.json ${DOCKER_IMAGE_TAG}
                     """
             }
         }
@@ -76,7 +76,7 @@ pipeline {
                     ]]) {
                         sh """
                             aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_REPO_URL}
-                            docker tag ${DOCKER_IMAGE} ${ECR_DOCKER_TAG}
+                            docker tag ${DOCKER_IMAGE_TAG} ${ECR_DOCKER_TAG}
                             docker push ${ECR_DOCKER_TAG}
                         """
                     }
@@ -123,7 +123,7 @@ pipeline {
     }
     post {
         always {
-            sh "docker rmi ${DOCKER_IMAGE} || true"
+            sh "docker rmi ${DOCKER_IMAGE_TAG} || true"
             cleanWs()
         }
     }
