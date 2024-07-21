@@ -94,12 +94,9 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         sh """
-                            echo "aws_account_id  = ${AWS_ACCOUNT_ID}" > terraform.tfvars
-                            echo "ecr_repo_url    = ${ECR_REPO_URL}" >> terraform.tfvars
-                            echo "ecr_docker_tag  = ${ECR_DOCKER_TAG}" >> terraform.tfvars
                             terraform init
-                            terraform plan -var-file="terraform.tfvars" -out=tfplan
-                            terraform apply -var-file="terraform.tfvars" -auto-approve tfplan
+                            terraform plan -var="aws_account_id=${AWS_ACCOUNT_ID}" -var="ecr_repo_url=${ECR_REPO_URL}" -var="ecr_docker_tag=${ECR_DOCKER_TAG}" -out=tfplan
+                            terraform apply -var="aws_account_id=${AWS_ACCOUNT_ID}" -var="ecr_repo_url=${ECR_REPO_URL}" -var="ecr_docker_tag=${ECR_DOCKER_TAG}" -auto-approve tfplan
                         """
                     }
                 }

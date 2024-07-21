@@ -92,7 +92,7 @@ variable "ecr_repo_url" {
   type = string
 }
 
-variable "ecr_docker_image_tag" {
-  description = "Docker Image Tag"
+variable "ecr_docker_tag" {
+  description = "ECR Docker Image Tag"
   type = string
 }
