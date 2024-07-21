@@ -14,16 +14,16 @@ echo \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin awscli -y
 
 
 ## pull docker image and run the application
 
 # Authenticate Docker to the ECR registry
-$(aws ecr get-login-password --region ${aws_region} | sudo docker login --username AWS --password-stdin ${ecr_repo_url})
+aws ecr get-login-password --region ${aws_region} | sudo docker login --username AWS --password-stdin ${ecr_repo_url}
 
 # Pull the Docker image from ECR
 sudo docker pull ${ecr_docker_tag}
 
 # Run the Docker container
-sudo docker run -d --name petclinic -p 8080:8080 ${ecr_docker_tag}
+sudo docker run -d --name petclinic -p 80:8080 ${ecr_docker_tag}

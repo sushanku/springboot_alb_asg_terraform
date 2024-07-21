@@ -16,6 +16,10 @@ resource "aws_launch_template" "springboot-app" {
     }
   }
 
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ecr_access.name
+  }
+
   user_data = base64encode(templatefile("${path.module}/docker_run_petclinic.tpl", {
     aws_region      = var.aws_region
     ecr_repo_url   = var.ecr_repo_url
