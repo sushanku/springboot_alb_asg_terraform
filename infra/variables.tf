@@ -1,4 +1,4 @@
-variable "region" {
+variable "aws_region" {
   description = "The AWS region to create resources in."
   default     = "us-east-1"
 }
@@ -82,11 +82,6 @@ variable "autoscale_desired" {
 
 
 ## variables for launch template user_data template
-variable "aws_account_id" {
-  description = "Account ID"
-  type = string
-}
-
 variable "ecr_repo_url" {
   description = "ECR URL Repo"
   type = string

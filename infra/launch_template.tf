@@ -17,7 +17,7 @@ resource "aws_launch_template" "springboot-app" {
   }
 
   user_data = base64encode(templatefile("${path.module}/docker_run_petclinic.tpl", {
-    aws_region      = var.region
+    aws_region      = var.aws_region
     ecr_repo_url   = var.ecr_repo_url
     ecr_docker_tag  = var.ecr_docker_tag
   }))
