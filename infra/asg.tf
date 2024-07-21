@@ -12,6 +12,7 @@ resource "aws_autoscaling_group" "springboot-app" {
     version = "$Latest"
   }
 
+
   instance_refresh {
     strategy = "Rolling"
     preferences {
@@ -24,4 +25,22 @@ resource "aws_autoscaling_group" "springboot-app" {
     value               = "springboot-app-asg-instance"
     propagate_at_launch = true
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+}
+
+# This resource will trigger an instance refresh when the launch template changes
+resource "null_resource" "asg_refresh_trigger" {
+  triggers = {
+    launch_template_version = aws_launch_template.springboot-app.latest_version
+  }
+
+  provisioner "local-exec" {
+    command = "aws autoscaling start-instance-refresh --auto-scaling-group-name ${aws_autoscaling_group.springboot-app.name}"
+  }
+
+  depends_on = [aws_autoscaling_group.springboot-app]
 }
