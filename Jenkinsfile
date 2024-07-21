@@ -95,8 +95,8 @@ pipeline {
                     ]]) {
                         sh """
                             terraform init
-                            terraform plan -var="aws_account_id=${AWS_ACCOUNT_ID}" -var="ecr_repo_url=${ECR_REPO_URL}" -var="ecr_docker_tag=${ECR_DOCKER_TAG}" -out=tfplan
-                            terraform apply -var="aws_account_id=${AWS_ACCOUNT_ID}" -var="ecr_repo_url=${ECR_REPO_URL}" -var="ecr_docker_tag=${ECR_DOCKER_TAG}" -auto-approve tfplan
+                            terraform plan -var="aws_region=${AWS_DEFAULT_REGION}" -var="ecr_repo_url=${ECR_REPO_URL}" -var="ecr_docker_tag=${ECR_DOCKER_TAG}" -out=tfplan
+                            terraform apply -auto-approve tfplan
                         """
                     }
                 }
